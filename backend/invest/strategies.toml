@@ -1,0 +1,24 @@
+version = "hypothesis-v1"
+validated = false
+minimum_daily_dollar_volume = 10000000
+minimum_risk_reward = 1.1
+# Mutually grouped signals: MA and momentum share one capped trend bucket.
+[weights]
+trend_relative = 50
+liquidity_volume = 25
+period_structure = 25
+[short]
+days_max = 5
+lookback = 5
+stop_atr = 0.8
+target_atr = 1.6
+[medium]
+days_max = 10
+lookback = 10
+stop_atr = 1.1
+target_atr = 2.2
+[long]
+days_max = 20
+lookback = 20
+stop_atr = 1.5
+target_atr = 3.0

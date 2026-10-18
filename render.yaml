@@ -1,0 +1,30 @@
+# Free-only default. No paid worker, managed Render DB, disk or cron resource.
+# Billing requirement: use a Free workspace/service with no payment method.
+# See DEPLOY_FREE.md before deploying; app budgets do not meter provider billing.
+services:
+  - type: web
+    name: shortlist-web
+    runtime: docker
+    region: oregon
+    plan: free
+    autoDeployTrigger: 'off'
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: OWNER_USERNAME
+        value: owner
+      - key: OWNER_PASSWORD_HASH
+        sync: false
+      - key: COOKIE_SECURE
+        value: 'true'
+      - key: DATA_MODE
+        value: demo
+      - key: ENABLE_LIVE_ORDERS
+        value: 'false'
+      - key: FREE_TIER_MODE
+        value: 'true'

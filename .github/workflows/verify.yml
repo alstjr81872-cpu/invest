@@ -1,0 +1,53 @@
+name: verify
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  research-and-paper:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16.10-bookworm@sha256:38471f330eb885e04de130b768d6db4e10469e2311879c7e5c699f6d2d8a1c74
+        env:
+          POSTGRES_USER: invest
+          POSTGRES_PASSWORD: local-development-only
+          POSTGRES_DB: invest_test
+        ports: ['55432:5432']
+        options: >-
+          --health-cmd 'pg_isready -U invest -d invest_test'
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      UV_CACHE_DIR: /tmp/shortlist-uv-cache
+      TEST_DATABASE_URL: postgresql+psycopg://invest:local-development-only@127.0.0.1:55432/invest_test
+      E2E_DATABASE_URL: postgresql+psycopg://invest:local-development-only@127.0.0.1:55432/invest_e2e_test
+      RESTART_DATABASE_URL: postgresql+psycopg://invest:local-development-only@127.0.0.1:55432/invest_restart_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.14'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.0'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: python -m pip install uv==0.12.23
+      - run: uv sync --frozen
+      - run: uv run ruff check backend scripts
+      - run: uv run pytest -q
+      - run: npm ci --prefix frontend
+      - run: npm run build --prefix frontend
+      - name: Create isolated system-test databases
+        run: |
+          uv run python - <<'PY'
+          import psycopg
+          with psycopg.connect('postgresql://invest:local-development-only@127.0.0.1:55432/invest_test',autocommit=True) as db:
+              db.execute('CREATE DATABASE invest_e2e_test')
+              db.execute('CREATE DATABASE invest_restart_test')
+          PY
+      - run: npx --prefix frontend playwright install --with-deps chromium
+      - run: uv run python scripts/check_browser.py
+      - run: uv run python scripts/check_browser.py --free
+      - run: uv run python scripts/check_restart.py

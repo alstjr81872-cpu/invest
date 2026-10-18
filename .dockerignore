@@ -1,0 +1,26 @@
+# Explicit build context: local credentials, Git metadata and backups are excluded.
+**
+!Dockerfile
+!.dockerignore
+!requirements.txt
+!pyproject.toml
+!alembic.ini
+!backend/
+!backend/invest/
+!backend/invest/**
+!migrations/
+!migrations/**
+!frontend/
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/index.html
+!frontend/tsconfig.json
+!frontend/vite.config.ts
+!frontend/src/
+!frontend/src/**
+**/__pycache__
+**/*.pyc
+**/.env
+**/.env.*
+**/*.key
+**/*.pem
